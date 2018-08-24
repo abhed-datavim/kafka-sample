@@ -1,5 +1,8 @@
 package com.datavim.producer.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -19,10 +22,6 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import com.datavim.domain.Customer;
 import com.datavim.domain.Driver;
-
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * 
  * @author abhed
@@ -39,25 +38,23 @@ public class KakfaConfiguration {
 	String group_id;
 	
 	@Bean
-    public ConsumerFactory<String, String> consumerFactory() {
+    public ConsumerFactory<String, Driver> kafkaConsumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap_servers);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, group_id);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
-        return new DefaultKafkaConsumerFactory<>(config);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
+                new JsonDeserializer<>(Driver.class));
     }
-
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory();
-        factory.setConsumerFactory(consumerFactory());
+    public ConcurrentKafkaListenerContainerFactory<String, Driver> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Driver> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(kafkaConsumerFactory());
         return factory;
     }
-	
 	
     @Bean
     public ProducerFactory<String, Customer> producerFactory() {
@@ -70,30 +67,8 @@ public class KakfaConfiguration {
         return new DefaultKafkaProducerFactory<>(config);
     }
 
-
     @Bean
     public KafkaTemplate<String, Customer> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
-    }
-    
-    @Bean
-    public ConsumerFactory<String, Driver> userConsumerFactory() {
-        Map<String, Object> config = new HashMap<>();
-
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap_servers);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, group_id);
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
-                new JsonDeserializer<>(Driver.class));
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Driver> userKafkaListenerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Driver> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(userConsumerFactory());
-        return factory;
-    }
-
-
+    }  
 }

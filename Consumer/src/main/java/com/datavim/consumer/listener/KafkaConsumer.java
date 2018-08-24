@@ -41,7 +41,7 @@ public class KafkaConsumer {
 	 * send an error saying No more drivers available
 	 * @param customer
 	 */
-	@KafkaListener(topics = "${kafka.topic.request-topic}", group = "${kafka.group-id}", containerFactory = "userKafkaListenerFactory")
+	@KafkaListener(topics = "${kafka.topic.request-topic}", group = "${kafka.group-id}", containerFactory = "kafkaListenerContainerFactory")
 	public void consumeJson(Customer customer) {
 		
 		System.out.println("Consumed Customer Object: " + customer);
